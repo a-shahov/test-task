@@ -1,0 +1,34 @@
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+]
+
+[project]
+name = "alt-binary-packages"
+dynamic = ["version"]
+description = "A utility for comparing binary packages in alt linux repositories"
+readme = "README.md"
+authors = [
+    {name = "Andrey Shahov", email = "a.shahov.garlic@yandex.ru"},
+]
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Framework :: aiohttp",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "aiohttp",
+]
+
+[project.scripts]
+alt-bins = "alt_binary_packages.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "alt_binary_packages.__version__"}
