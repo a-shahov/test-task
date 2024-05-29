@@ -62,6 +62,22 @@ def _rpmvercmp(value1, value2):
     return OLDER
 
 
+def check_version(pack1, pack2):
+    '''
+    return True if pack1 newer than pack2
+    '''
+    if pack1['epoch'] != pack2['epoch']:
+        return pack1['epoch'] > pack2['epoch']
+
+    if (result := _rpmvercmp(pack1['version'], pack2['version']) != 0):
+        return result == 1
+
+    if (result := _rpmvercmp(pack1['release'], pack2['release']) != 0):
+        return result == 1
+
+    return False
+
+
 async def _query(branch, arch, timeout):
     session_timeout = aiohttp.ClientTimeout(total=timeout)
 
@@ -94,13 +110,30 @@ async def query_bins(arch, timeout):
         }
 
     result = {
+        'arch': arch,
+        'total_uniq_p10': 0,
+        'total_uniq_sisyphus': 0,
+        'total_higher_version': 0,
         'uniq_p10': [],
         'uniq_sisyphus': [],
         'higher_version': [],
     }
 
     for name, package in mappings['p10'].items():
-        pass 
+        if not mappings['sisyphus'].get(name, None):
+            result['total_uniq_p10'] += 1
+            result['uniq_p10'].append(package)
+
+    for name, package in mappings['sisyphus'].items():
+        if not mappings['p10'].get(name, None):
+            result['total_uniq_sisyphus'] += 1
+            result['uniq_sisyphus'].append(package)
+
+        elif check_version(package, mappings['p10'][name]):
+            result['total_higher_version'] += 1
+            result['higher_version'].append(package)
+
+    print(json.dumps(result))
 
 
 def main():
