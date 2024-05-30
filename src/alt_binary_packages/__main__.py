@@ -47,9 +47,9 @@ def _rpmvercmp(value1, value2):
             match1 = re.match(R_LETTERS, value1)
             match2 = re.match(R_LETTERS, value2)
             
-            if match1.group(1) > match1.group(2):
+            if match1.group(1) > match2.group(1):
                 return NEWER
-            elif match1.group(1) < match1.group(2):
+            elif match1.group(1) < match2.group(1):
                 return OLDER
 
         value1 = match1.group(2)
@@ -69,10 +69,10 @@ def check_version(pack1, pack2):
     if pack1['epoch'] != pack2['epoch']:
         return pack1['epoch'] > pack2['epoch']
 
-    if (result := _rpmvercmp(pack1['version'], pack2['version']) != 0):
+    if ((result := _rpmvercmp(pack1['version'], pack2['version'])) != 0):
         return result == 1
 
-    if (result := _rpmvercmp(pack1['release'], pack2['release']) != 0):
+    if ((result := _rpmvercmp(pack1['release'], pack2['release'])) != 0):
         return result == 1
 
     return False
