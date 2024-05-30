@@ -3,6 +3,7 @@ import argparse
 import logging
 import json
 import re
+from contextlib import suppress
 
 import aiohttp
 
@@ -140,7 +141,8 @@ async def query_bins(arch, timeout):
             result['total_higher_version'] += 1
             result['higher_version'].append(package)
 
-    print(json.dumps(result))
+    with suppress(BrokenPipeError):
+        print(json.dumps(result))
 
 
 def main():
