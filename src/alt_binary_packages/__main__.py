@@ -46,7 +46,14 @@ def _rpmvercmp(value1, value2):
         else:
             match1 = re.match(R_LETTERS, value1)
             match2 = re.match(R_LETTERS, value2)
-            
+
+            if not match2 and match1:
+                return NEWER
+            elif match2 and not match1:
+                return OLDER
+            elif not match2 and not match1:
+                return EQUAL
+
             if match1.group(1) > match2.group(1):
                 return NEWER
             elif match1.group(1) < match2.group(1):
