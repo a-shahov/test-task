@@ -107,11 +107,11 @@ async def query_bins(main_branch, aux_branch, arch, timeout):
 
     if any(map(lambda value: isinstance(value, asyncio.TimeoutError), responses)):
         log.error('Timeout error during request execution. Use --timeout option')
-        exit(1)
+        return None
 
     if any(map(lambda value: value[1] != 200, responses)):
         log.error('Error when making a request')
-        exit(1)
+        return None
 
     mappings = {}
     for response in responses:
@@ -143,8 +143,7 @@ async def query_bins(main_branch, aux_branch, arch, timeout):
             result['total_higher_version'] += 1
             result['higher_version'].append(package)
 
-    with suppress(BrokenPipeError):
-        print(json.dumps(result))
+    return result
 
 
 def main():
@@ -175,9 +174,15 @@ def main():
     )
     args = parser.parse_args()
 
-    asyncio.run(
+    result = asyncio.run(
         query_bins(args.main_branch, args.aux_branch, args.arch, args.timeout)
     )
+
+    if not result:
+        exit(1)
+
+    with suppress(BrokenPipeError):
+        print(json.dumps(result))
 
 
 if __name__ == '__main__':
