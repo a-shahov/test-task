@@ -1,9 +1,9 @@
 # alt-bins
 
 alt-bins is a line-oriented query alt linux binary packages tool.
-Outputs JSON with all packages that are in the p10 branch but are missing in sisyphus,
-all packages that are in the sisyphus branch but are missing in p10, also all packages
-in sisyphus which have higher version than in p10 branch.
+Outputs JSON with all packages that are in the aux branch but are missing in main branch,
+all packages that are in the main branch but are missing in aux branch, also all packages
+in main which have higher version than in aux branch.
 
 **package**
 
@@ -25,11 +25,11 @@ in sisyphus which have higher version than in p10 branch.
 ```json
 {
     "arch": "string",
-    "total_uniq_p10": 0,
-    "total_uniq_sisyphus": 0,
+    "total_uniq_<aux_branch>": 0,
+    "total_uniq_<main_branch>": 0,
     "total_higher_version": 0,
-    "uniq_p10": [package],
-    "uniq_sisyphus": [package],
+    "uniq_<aux_branch>": [package],
+    "uniq_<main_branch>": [package],
     "higher_version": [package]
 }
 ```
@@ -47,7 +47,7 @@ pip install "."
 ## Usage
 
 ```bash
-alt-bins <arch>
+alt-bins <main_branch> <aux_branch> <arch>
 alt-bins --help
 ```
 
