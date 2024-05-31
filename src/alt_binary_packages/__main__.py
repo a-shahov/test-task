@@ -7,7 +7,7 @@ from contextlib import suppress
 
 import aiohttp
 
-from .const import ARCHITECTURES, URL, TIMEOUT
+from .const import ARCHITECTURES, BRANCHES, URL, TIMEOUT
 
 log = logging.getLogger()
 
@@ -97,9 +97,11 @@ async def _query(branch, arch, timeout):
             return (branch, resp.status, json.loads(await resp.text()))
 
 
-async def query_bins(arch, timeout):
-    queries = [asyncio.create_task(_query('p10', arch, timeout)),
-               asyncio.create_task(_query('sisyphus', arch, timeout))]
+async def query_bins(main_branch, aux_branch, arch, timeout):
+    queries = [
+        asyncio.create_task(_query(main_branch, arch, timeout)),
+        asyncio.create_task(_query(aux_branch, arch, timeout))
+    ]
 
     responses = await asyncio.gather(*queries, return_exceptions=True)
 
@@ -119,25 +121,25 @@ async def query_bins(arch, timeout):
 
     result = {
         'arch': arch,
-        'total_uniq_p10': 0,
-        'total_uniq_sisyphus': 0,
+        f'total_uniq_{aux_branch}': 0,
+        f'total_uniq_{main_branch}': 0,
         'total_higher_version': 0,
-        'uniq_p10': [],
-        'uniq_sisyphus': [],
+        f'uniq_{aux_branch}': [],
+        f'uniq_{main_branch}': [],
         'higher_version': [],
     }
 
-    for name, package in mappings['p10'].items():
-        if not mappings['sisyphus'].get(name, None):
-            result['total_uniq_p10'] += 1
-            result['uniq_p10'].append(package)
+    for name, package in mappings[aux_branch].items():
+        if not mappings[main_branch].get(name, None):
+            result[f'total_uniq_{aux_branch}'] += 1
+            result[f'uniq_{aux_branch}'].append(package)
 
-    for name, package in mappings['sisyphus'].items():
-        if not mappings['p10'].get(name, None):
-            result['total_uniq_sisyphus'] += 1
-            result['uniq_sisyphus'].append(package)
+    for name, package in mappings[main_branch].items():
+        if not mappings[aux_branch].get(name, None):
+            result[f'total_uniq_{main_branch}'] += 1
+            result[f'uniq_{main_branch}'].append(package)
 
-        elif check_version(package, mappings['p10'][name]):
+        elif check_version(package, mappings[aux_branch][name]):
             result['total_higher_version'] += 1
             result['higher_version'].append(package)
 
@@ -147,6 +149,19 @@ async def query_bins(arch, timeout):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'main_branch',
+        choices=BRANCHES,
+        help=(
+            'the main branch against which new versions of packages '
+            'will be checked'
+        ),
+    )
+    parser.add_argument(
+        'aux_branch',
+        choices=BRANCHES,
+        help='auxiliary branch for version comparison',
+    )
     parser.add_argument(
         'arch',
         choices=ARCHITECTURES,
@@ -160,7 +175,9 @@ def main():
     )
     args = parser.parse_args()
 
-    asyncio.run(query_bins(args.arch, args.timeout))
+    asyncio.run(
+        query_bins(args.main_branch, args.aux_branch, args.arch, args.timeout)
+    )
 
 
 if __name__ == '__main__':
